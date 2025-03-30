@@ -2,22 +2,31 @@ const http = require("node:http");
 const path = require("node:path");
 const fs = require("node:fs");
 
-const bio = path.join(__dirname, 'index.html');
-function getBio(req, res) {
-    fs.readFile(bio, 'utf-8', (err, data) => {
-        if (err) throw err;
-        res.end(data);
-    })
-}
-
 const server = http.createServer((req, res) => {
-  if (req.method !== "GET" || req.url !== "/index.html") {
-    res.writeHead(404, "Page not found");
-    res.end("Page not found");
-    return;
+  let resource = path.join(__dirname, req.url);
+  const resourceType = path.extname(resource);
+  let contentType;
+
+  switch (resourceType) {
+    case ".html":
+      contentType = "text/html";
+      break;
+    case ".css":
+      contentType = "text/css";
+      break;
   }
 
-  getBio(req, res);
+  console.log(contentType);
+
+  fs.readFile(resource, "utf-8", (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Resource not found");
+    } else {
+      res.writeHead(200, { "Content-Type": contentType });
+      res.end(data);
+    }
+  });
 });
 
 const PORT = 5000;
